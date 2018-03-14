@@ -22,6 +22,7 @@ FusionEKF::FusionEKF() {
   H_laser_ = MatrixXd(2, 4);
   Hj_ = MatrixXd(3, 4);
 
+
   //measurement covariance matrix - laser
   R_laser_ << 0.0225, 0,
         0, 0.0225;
@@ -36,6 +37,21 @@ FusionEKF::FusionEKF() {
     * Finish initializing the FusionEKF.
     * Set the process and measurement noises
   */
+  H_laser_<<1,0,0,0,
+		    0,1,0,0;
+
+  //set the acceleration noise components
+  float noise_ax = 1.0;
+  float noise_ay = 1.0;
+
+  // laser Measurement noises
+  float sig_sq_x = 0.0225;
+  float sig_sq_y = 0.0225;
+
+  // radar measurement noises
+  float sig_sq_rho = 0.09;
+  float sig_sq_phi = 0.0009;
+  float sig_sq_rhodot = 0.09;
 
 
 }
@@ -59,6 +75,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       * Remember: you'll need to convert radar from polar to cartesian coordinates.
     */
     // first measurement
+
+	KalmanFilter ekf_;
     cout << "EKF: " << endl;
     ekf_.x_ = VectorXd(4);
     ekf_.x_ << 1, 1, 1, 1;

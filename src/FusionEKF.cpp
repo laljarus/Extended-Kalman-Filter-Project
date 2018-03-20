@@ -67,6 +67,10 @@ FusionEKF::FusionEKF() {
   x_ = VectorXd(4);
   x_<< 1,1,1,1;
 
+  Hj_<< 0,0,0,0,
+		0,0,0,0,
+		0,0,0,0;
+
 }
 
 /**
@@ -89,10 +93,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
     // first measurement
 
-	KalmanFilter ekf_;
+
 	cout << "EKF: " << endl;
-
-
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
@@ -111,6 +113,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     x_(3) = rho_dot*sin(theta);
 
     ekf_.x_ = x_;
+    ekf_.H_ = tools.CalculateJacobian(ekf_.x_, Hj_);
+    Hj_ = ekf_.H_;
 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -153,7 +157,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   ekf_.F_(0, 2) = dt;
   ekf_.F_(1, 3) = dt;
-
+  /*
+  ekf_.F_ << 1, 0, dt, 0,
+		     0, 1, 0, dt,
+			 0, 0, 1, 0,
+			 0, 0, 0, 1;
+*/
 
   ekf_.Q_ <<  dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
     		  0, dt_4/4*noise_ay, 0, dt_3/2*noise_ay,
@@ -174,7 +183,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
-	ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
+	ekf_.H_ = tools.CalculateJacobian(ekf_.x_, Hj_);
+	Hj_ = ekf_.H_;
 	ekf_.R_ = R_radar_;
 
 	ekf_.UpdateEKF(measurement_pack.raw_measurements_);

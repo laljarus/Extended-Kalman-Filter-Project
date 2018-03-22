@@ -1,5 +1,7 @@
 #include <uWS/uWS.h>
 #include <iostream>
+#include<fstream>
+#include<sstream>
 #include "json.hpp"
 #include <math.h>
 #include "FusionEKF.h"
@@ -38,7 +40,20 @@ int main()
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  fstream out_file;
+  out_file.open("obj_pose-laser-radar-output.txt");
+  if (out_file.is_open()){
+
+    out_file<<"Px \tPy \tVx \tVy \tPx_rmse \tPy_rmse \tVx_rmse \tVy_rmse"<<endl;
+
+  }else{
+    cout<<"The output log file cannot be opened"<<endl;
+  }
+
+
+
+
+  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth,&out_file](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -136,6 +151,20 @@ int main()
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+
+          if (out_file.is_open()){
+
+        	  out_file<<p_x<<"\t";
+              out_file<<p_y<<"\t";
+              out_file<<v1<<"\t";
+              out_file<<v2<<"\t";
+              out_file<<RMSE(0)<<"\t";
+              out_file<<RMSE(1)<<"\t";
+              out_file<<RMSE(2)<<"\t";
+              out_file<<RMSE(3)<<endl;
+          }
+
+
 	  
         }
       } else {
@@ -145,7 +174,10 @@ int main()
       }
     }
 
+
   });
+
+
 
   // We don't need this since we're not using HTTP but if it's removed the program
   // doesn't compile :-(

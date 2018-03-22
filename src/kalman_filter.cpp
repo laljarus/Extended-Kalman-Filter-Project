@@ -1,8 +1,11 @@
 #include "kalman_filter.h"
 #include<math.h>
+#include<iostream>
+#define pi 3.14159265359
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using namespace std;
 
 // Please note that the Eigen library does not initialize 
 // VectorXd or MatrixXd objects with zeros upon creation.
@@ -64,18 +67,24 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   theta = atan2(x_(1),x_(0));
   rho_dot = (x_(0)*x_(2)+x_(1)*x_(3))/rho;
 
-  z_pred << rho,theta,rho_dot;
-  VectorXd y = z - z_pred;
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
+  if ((theta > 0 & z(1) > 0)|(theta < 0 & z(1) < 0)){
 
-  //new estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+	  z_pred << rho,theta,rho_dot;
+	  VectorXd y = z - z_pred;
+	  MatrixXd Ht = H_.transpose();
+	  MatrixXd S = H_ * P_ * Ht + R_;
+	  MatrixXd Si = S.inverse();
+	  MatrixXd PHt = P_ * Ht;
+	  MatrixXd K = PHt * Si;
+
+	  //new estimate
+	  x_ = x_ + (K * y);
+	  long x_size = x_.size();
+	  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+	  P_ = (I - K * H_) * P_;
+
+  }
+
+
 
 }

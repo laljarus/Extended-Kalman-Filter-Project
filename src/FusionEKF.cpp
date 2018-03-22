@@ -150,10 +150,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
   previous_timestamp_ = measurement_pack.timestamp_;
-
+/*
   float dt_2 = dt * dt;
   float dt_3 = dt_2 * dt;
   float dt_4 = dt_3 * dt;
+*/
+  float dt_2 = pow(dt,2);
+  float dt_3 = pow(dt,3);
+  float dt_4 = pow(dt,4);
 
   ekf_.F_(0, 2) = dt;
   ekf_.F_(1, 3) = dt;
